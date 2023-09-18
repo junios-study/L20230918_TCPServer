@@ -29,7 +29,7 @@ int main()
 	memset(&ServerSock, 0, sizeof(SOCKADDR_IN));
 	ServerSock.sin_family = AF_INET;
 	ServerSock.sin_port = htons(7777);
-	ServerSock.sin_addr.s_addr = inet_addr("127.0.0.1");
+	ServerSock.sin_addr.s_addr = INADDR_ANY;
 
 	Result = bind(ServerSocket, (SOCKADDR*)&ServerSock, sizeof(ServerSock));
 	if (Result == SOCKET_ERROR)
@@ -47,42 +47,45 @@ int main()
 		exit(-1);
 	}
 
-	SOCKADDR_IN ClientSock;
-	memset(&ClientSock, 0, sizeof(SOCKADDR_IN));
-	int ClientSockLength = sizeof(ClientSock);
-	
-	SOCKET ClientSocket = accept(ServerSocket, (SOCKADDR*)&ClientSock, &ClientSockLength);
-	if (ClientSocket == INVALID_SOCKET)
+	while (true)
 	{
-		cout << "accept Error" << endl;
-		cout << "Socket Error Number : " << GetLastError() << endl;
-		exit(-1);
+		SOCKADDR_IN ClientSock;
+		memset(&ClientSock, 0, sizeof(SOCKADDR_IN));
+		int ClientSockLength = sizeof(ClientSock);
+
+		SOCKET ClientSocket = accept(ServerSocket, (SOCKADDR*)&ClientSock, &ClientSockLength);
+		if (ClientSocket == INVALID_SOCKET)
+		{
+			cout << "accept Error" << endl;
+			cout << "Socket Error Number : " << GetLastError() << endl;
+			exit(-1);
+		}
+
+		char Message[] = "찬영이바보";
+
+		int SendByte = send(ClientSocket, Message, (int)strlen(Message), 0);
+		if (SendByte <= 0)
+		{
+			cout << "send Error" << endl;
+			cout << "Socket Error Number : " << GetLastError() << endl;
+			exit(-1);
+		}
+
+		char Buffer[1024] = { 0, };
+
+		int RecvByte = recv(ClientSocket, Buffer, sizeof(Buffer), 0);
+		if (RecvByte <= 0)
+		{
+			cout << "recv Error" << endl;
+			cout << "Socket Error Number : " << GetLastError() << endl;
+			exit(-1);
+		}
+
+		cout << "client send : " << Buffer << endl;
+
+
+		closesocket(ClientSocket);
 	}
-
-	char Message[] = "찬영이바보";
-
-	int SendByte = send(ClientSocket, Message, (int)strlen(Message), 0);
-	if (SendByte <= 0)
-	{
-		cout << "send Error" << endl;
-		cout << "Socket Error Number : " << GetLastError() << endl;
-		exit(-1);
-	}
-
-	char Buffer[1024] = { 0, };
-
-	int RecvByte = recv(ClientSocket, Buffer, sizeof(Buffer), 0);
-	if (RecvByte <= 0)
-	{
-		cout << "recv Error" << endl;
-		cout << "Socket Error Number : " << GetLastError() << endl;
-		exit(-1);
-	}
-
-	cout << "client send : " << Buffer << endl;
-
-
-	closesocket(ClientSocket);
 	closesocket(ServerSocket);
 
 	WSACleanup();
