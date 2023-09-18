@@ -79,6 +79,9 @@ int main()
 		exit(-1);
 	}
 
+	cout << "client send : " << Buffer << endl;
+
+
 	closesocket(ClientSocket);
 	closesocket(ServerSocket);
 
